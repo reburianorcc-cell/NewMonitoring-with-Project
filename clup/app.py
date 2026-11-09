@@ -79,7 +79,7 @@ except Exception as error:
     st.error(f"Unable to load CLUP dashboard data: {error}")
     st.stop()
 
-def go(page_name):
+def navigate_to(page_name):
     st.session_state.clup_page = page_name
 
 with st.sidebar:
@@ -95,7 +95,7 @@ with st.sidebar:
     if st.session_state.get("clup_page") not in [item[0] for item in pages]:
         st.session_state.clup_page = "Overview"
     for name, icon in pages:
-        st.button(name, icon=icon, use_container_width=True, type="primary" if st.session_state.clup_page == name else "secondary", on_click=go, args=(name,), key=f"nav_clup_{name.casefold().replace(' ', '_').replace('-', '_')}")
+        st.button(name, icon=icon, use_container_width=True, type="primary" if st.session_state.clup_page == name else "secondary", on_click=navigate_to, args=(name,), key=f"nav_clup_{name.casefold().replace(' ', '_').replace('-', '_')}")
 
 page = st.session_state.clup_page
 title_col, selector_col = st.columns([1.7, 1])
