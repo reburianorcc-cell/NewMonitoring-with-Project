@@ -1,8 +1,33 @@
+# Credentials and private configuration
 .env
 .env.*
 !.env.example
 .streamlit/secrets.toml
+*.key
+*.pem
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Python cache and test artifacts
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Local Python environments
 .venv/
 venv/
+
+# Uploaded and generated temporary files
+uploads/
+temp/
+tmp/
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

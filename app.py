@@ -1749,10 +1749,11 @@ if portal_section == "Evacuation Dashboard":
 
     st.session_state.authenticated = True
     module_name = "evacuation.app"
-    if module_name in sys.modules:
-        importlib.reload(sys.modules[module_name])
-    else:
-        importlib.import_module(module_name)
+    # Streamlit Cloud may keep a module whose import specification was
+    # discarded between reruns. Remove only the rendered page module and
+    # import it cleanly instead of calling importlib.reload().
+    sys.modules.pop(module_name, None)
+    importlib.import_module(module_name)
     st.stop()
 
 if portal_section == "CLUP Monitoring":
@@ -1761,10 +1762,8 @@ if portal_section == "CLUP Monitoring":
     import sys
 
     module_name = "clup.app"
-    if module_name in sys.modules:
-        importlib.reload(sys.modules[module_name])
-    else:
-        importlib.import_module(module_name)
+    sys.modules.pop(module_name, None)
+    importlib.import_module(module_name)
     st.stop()
 
 if portal_section == "Project Control":
@@ -1773,10 +1772,8 @@ if portal_section == "Project Control":
     import sys
 
     module_name = "project_control.app"
-    if module_name in sys.modules:
-        importlib.reload(sys.modules[module_name])
-    else:
-        importlib.import_module(module_name)
+    sys.modules.pop(module_name, None)
+    importlib.import_module(module_name)
     st.stop()
 
 if "pending_dashboard" in st.session_state:
