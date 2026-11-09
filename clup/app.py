@@ -6,7 +6,11 @@ from uuid import uuid4
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-from streamlit_pdf_viewer import pdf_viewer
+
+try:
+    from streamlit_pdf_viewer import pdf_viewer
+except ImportError:
+    pdf_viewer = None
 
 try:
     # Package mode: imported by the SOCOCA Monitoring Portal.
@@ -211,7 +215,10 @@ elif page == "Documents":
         labels = {f"{document.get('title')} — {document.get('municipality')}": document for document in filtered_documents}
         selected_document = labels[st.selectbox("PDF document", list(labels), key="clup_pdf_view_selection")]
         if selected_document.get("data"):
-            pdf_viewer(input=selected_document["data"], width="100%", height=840, zoom_level="auto")
+            if pdf_viewer is not None:
+                pdf_viewer(input=selected_document["data"], width="100%", height=840, zoom_level="auto")
+            else:
+                st.info("PDF preview is unavailable on this deployment. Download the document to view it.")
         else:
             st.info("The PDF content is unavailable.")
 else:
