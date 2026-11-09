@@ -1,0 +1,1 @@
+"""Independent dashboard page modules."""
