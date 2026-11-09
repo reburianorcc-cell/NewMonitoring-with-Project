@@ -4,7 +4,7 @@ plotly>=5.24
 openpyxl>=3.1
 supabase>=2.4
 bcrypt>=4.1
-streamlit-pdf-viewer>=0.1.0
+streamlit-pdf-viewer==0.0.30
 pyshp>=2.3
 pyproj>=3.6
 streamlit-pdf-viewer==0.0.30
