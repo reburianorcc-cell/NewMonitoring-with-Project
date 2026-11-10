@@ -3,7 +3,6 @@ import streamlit as st
 from project_control.views.cost import render as render_cost
 from project_control.views.data_upload import render as render_data_upload
 from project_control.views.overview import render as render_overview
-from project_control.views.quality import render as render_quality
 from project_control.views.reports import render as render_reports
 from project_control.views.risk import render as render_risk
 from project_control.views.schedule import render as render_schedule
@@ -37,7 +36,7 @@ div[data-testid="stVerticalBlockBorderWrapper"],.stColumn div[data-testid="stVer
 [class*="st-key-whitecard_reports_generate"] [data-testid="stSelectbox"],[class*="st-key-whitecard_reports_generate"] [data-testid="stDateInput"]{padding:.15rem 0 .3rem!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}[class*="st-key-whitecard_reports_generate"] [data-testid="stSelectbox"] label,[class*="st-key-whitecard_reports_generate"] [data-testid="stDateInput"] label{margin-bottom:.15rem!important;font-size:11px!important}[class*="st-key-whitecard_reports_generate"] [data-baseweb="select"]>div,[class*="st-key-whitecard_reports_generate"] [data-baseweb="input"],[class*="st-key-whitecard_reports_generate"] [data-testid="stDateInput"] input{min-height:38px!important;height:38px!important;background:#f4f7fa!important}[class*="st-key-whitecard_reports_generate"] [data-testid="stCheckbox"]{min-height:26px!important}[class*="st-key-whitecard_reports_generate"] [data-testid="stCheckbox"] label{padding-top:0!important;padding-bottom:0!important}[class*="st-key-whitecard_reports_generate"] .stButton{margin-top:.1rem!important}[class*="st-key-whitecard_reports_generate"] .stButton>button{min-height:38px!important;height:38px!important}
 </style>""", unsafe_allow_html=True)
 
-NAVIGATION=[("Overview",":material/dashboard:"),("Schedule",":material/calendar_month:"),("Cost",":material/bar_chart:"),("Quality",":material/verified_user:"),("Risk",":material/warning:"),("Reports",":material/description:"),("Data Upload",":material/upload_file:")]
+NAVIGATION=[("Overview",":material/dashboard:"),("Schedule",":material/calendar_month:"),("Cost",":material/bar_chart:"),("Risk",":material/warning:"),("Reports",":material/description:"),("Data Upload",":material/upload_file:")]
 if st.session_state.get("admin_role") in {"admin", "super_admin"}:
     NAVIGATION.append(("Settings", ":material/settings:"))
 
@@ -89,10 +88,6 @@ with top1:
     project=st.selectbox("Project", project_options, index=project_index, key="dashboard_project_select")
 if project == "No project uploaded":
     project = ""
-with top_year:
-    project_year=st.selectbox("Project Year",["All Years"]+[f"Year {year}" for year in range(1,11)],key="project_year")
-with top2:
-    report_date=st.date_input("Reporting Date",date(2026,9,15))
 
 identity_key = (province, project)
 if st.session_state.get("loaded_project_identity") != identity_key:
@@ -106,10 +101,18 @@ if st.session_state.get("loaded_project_identity") != identity_key:
     else:
         st.session_state.pop("project_monitoring_data", None)
     st.session_state.loaded_project_identity = identity_key
+
+active_data = get_project_data()
+duration_years = active_data.get("duration_years", 0) if active_data else 0
+year_options = ["All Years"] + [f"Year {year}" for year in range(1, duration_years + 1)]
+with top_year:
+    project_year=st.selectbox("Project Year", year_options, key="project_year")
+with top2:
+    report_date=st.date_input("Reporting Date",date(2026,9,15))
 st.session_state.allowed_project_provinces = allowed_provinces
 st.session_state.project_registry = registry
 
-PAGES={"Overview":render_overview,"Schedule":render_schedule,"Cost":render_cost,"Quality":render_quality,"Risk":render_risk,"Reports":render_reports,"Data Upload":render_data_upload,"Settings":render_settings}
+PAGES={"Overview":render_overview,"Schedule":render_schedule,"Cost":render_cost,"Risk":render_risk,"Reports":render_reports,"Data Upload":render_data_upload,"Settings":render_settings}
 page_content=st.empty()
 page_content.empty()
 with page_content.container():
@@ -120,7 +123,5 @@ with page_content.container():
         PAGES[page](project,report_date,project_year)
     elif not get_project_data():
         st.info("Upload the four SOCOCA Project Monitoring CSV files to populate this dashboard.")
-    elif project_year not in ("All Years", "Year 1"):
-        st.info(f"No monitoring data is available for {project_year}. The uploaded workbook currently contains Year 1 (M1–M12) only.")
     else:
         PAGES[page](project,report_date,project_year)

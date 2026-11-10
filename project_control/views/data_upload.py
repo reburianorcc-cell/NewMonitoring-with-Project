@@ -26,6 +26,7 @@ PROJECT_FILE_TYPES = {
     "Project Components": ["project_components", "total_physical_target", "total_project_cost"],
     "Project Targets": ["month", "physical", "cost"],
     "Project Accomplishment": ["month", "physical", "cost"],
+    "Project Risks": ["risk_id", "risk_description", "category", "probability", "impact", "affected_month", "delay_days", "owner", "mitigation_action", "status"],
 }
 
 def _normalize(value):
@@ -34,6 +35,8 @@ def _normalize(value):
 
 def _suggest_type(name, dataframe):
     key = _normalize(name)
+    if "risk" in key:
+        return "Project Risks"
     if "accompl" in key or "actual" in key:
         return "Project Accomplishment"
     if "target" in key or "plan" in key:
@@ -43,6 +46,8 @@ def _suggest_type(name, dataframe):
     if "basic" in key or "information" in key or "overview" in key:
         return "Basic Project Information"
     columns = {_normalize(column) for column in dataframe.columns}
+    if {"risk_id", "risk_description", "delay_days"}.issubset(columns):
+        return "Project Risks"
     if {"project_components", "total_physical_target", "total_project_cost"}.issubset(columns):
         return "Project Components"
     if {"project_name", "implementing_unit"}.issubset(columns):
@@ -277,14 +282,15 @@ def render(project, report_date, project_year="All Years"):
         st.caption("Accepted formats: CSV, Excel (.xlsx), and Excel 97–2003 (.xls).")
         replace_existing = st.toggle("Replace matching saved files", value=False)
     with guide.container(border=True, key="whitecard_upload_guide"):
-        st.markdown('<div class="section-title">Four Project Files</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Project Files</div>', unsafe_allow_html=True)
         st.markdown(
             "1. **Basic Project Information**  \n"
             "2. **Project Components**  \n"
-            "3. **Project Targets** — M1 to M12  \n"
-            "4. **Project Accomplishment** — M1 to M12"
+            "3. **Project Targets** — dynamic project months  \n"
+            "4. **Project Accomplishment** — dynamic project months  \n"
+            "5. **Project Risks** — optional risk and delay register"
         )
-        st.caption("A single Excel workbook may contain all four as separate sheets.")
+        st.caption("A single Excel workbook may contain the tables as separate sheets. Project duration is detected automatically from the highest month number.")
         if is_configured():
             st.success("Supabase persistent storage is connected.")
         else:
@@ -387,14 +393,19 @@ def render(project, report_date, project_year="All Years"):
                             "Records": len(item["dataframe"]),
                             "Action": "Replaced" if existed else "Uploaded",
                         })
-                tables = dict(st.session_state.get("project_monitoring_tables", {}))
-                for item in mapped_items:
-                    tables[item["content_type"]] = item["dataframe"]
+                # Start from the persisted project tables, then apply the files
+                # from this upload last. This guarantees that a just-uploaded
+                # risk register cannot be overwritten by a stale cached query.
+                tables = {}
                 if is_configured():
                     try:
                         tables.update(fetch_latest_datasets(upload_province, upload_project))
                     except Exception:
                         pass
+                else:
+                    tables.update(st.session_state.get("project_monitoring_tables", {}))
+                for item in mapped_items:
+                    tables[item["content_type"]] = item["dataframe"]
                 st.session_state.project_monitoring_tables = tables
                 project_data = build_project_data(tables)
                 if project_data:
@@ -408,13 +419,20 @@ def render(project, report_date, project_year="All Years"):
                     st.session_state.pop("dashboard_province_select", None)
                     st.session_state.pop("dashboard_project_select", None)
                     st.session_state.pop("project_registry", None)
+                    # Force app.py to reload this project's newest Supabase
+                    # datasets on the next rerun, even when its identity did
+                    # not change.
+                    st.session_state.pop("loaded_project_identity", None)
                 storage_name = "Supabase" if is_configured() else "the current session"
                 if project_data:
                     st.session_state.project_upload_notice = (
                         f"{len(mapped_items)} monitoring table(s) saved to {storage_name}. "
                         "The dashboard now uses the uploaded SOCOCA data."
                     )
-                    st.session_state.project_control_page = "Overview"
+                    uploaded_types = {item["content_type"] for item in mapped_items}
+                    st.session_state.project_control_page = (
+                        "Risk" if "Project Risks" in uploaded_types else "Overview"
+                    )
                     st.rerun()
                 st.success(f"{len(mapped_items)} monitoring table(s) saved to {storage_name}.")
             except Exception as exc:

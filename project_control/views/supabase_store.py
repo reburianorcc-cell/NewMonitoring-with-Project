@@ -305,7 +305,9 @@ def fetch_latest_datasets(province=None, project_name=None):
     query = db.table("project_uploads").select("id,project_id,content_type,uploaded_at")
     if project_ids is not None:
         query = query.in_("project_id", list(project_ids))
-    uploads = query.order("uploaded_at", desc=True).limit(200).execute().data or []
+    # Use the upload id as a deterministic tie-breaker when multiple files are
+    # saved within the same database timestamp.
+    uploads = query.order("uploaded_at", desc=True).order("id", desc=True).limit(200).execute().data or []
     newest = {}
     for upload in uploads:
         content_type = upload.get("content_type")

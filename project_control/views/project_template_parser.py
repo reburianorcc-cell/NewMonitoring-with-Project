@@ -41,11 +41,11 @@ def _money(value) -> float | None:
 
 
 def _month_number(value) -> int | None:
-    match = re.search(r"(\d{1,2})", str(value or ""))
+    match = re.search(r"(\d+)", str(value or ""))
     if not match:
         return None
     number = int(match.group(1))
-    return number if 1 <= number <= 12 else None
+    return number if number >= 1 else None
 
 
 def _first_present(frame: pd.DataFrame, column: str):
@@ -58,7 +58,8 @@ def _first_present(frame: pd.DataFrame, column: str):
 
 def _sococa_month_table(frame: pd.DataFrame) -> pd.DataFrame:
     rows = []
-    for month_number in range(1, 13):
+    detected_months = frame["Month"].map(_month_number).dropna().astype(int)
+    for month_number in range(1, detected_months.max() + 1 if not detected_months.empty else 1):
         month_rows = frame[
             frame["Month"].map(_month_number).eq(month_number)
         ].copy()
