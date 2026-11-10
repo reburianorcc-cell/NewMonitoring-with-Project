@@ -1,4 +1,4 @@
-# Project Control Dashboard
+# Project Monitoring Dashboard
 
 Interactive Streamlit prototype based on the approved visual mockups. The distributed app starts without sample project data.
 
@@ -48,10 +48,10 @@ The Province and Project are assigned during file upload. Overview, Schedule, Co
 
 The dashboard header uses Province and Project selections based on the signed-in account's permitted data. New project names are entered from Data Upload.
 
-## Province-based Project Control access
+## Province-based Project Monitoring access
 
 - Admin and Super Admin accounts can view every province and project.
-- An Operator must first be assigned to the `Project Control` dashboard in the shared Account Settings.
+- An Operator must first be assigned to the `Project Monitoring` dashboard in the shared Account Settings.
 - In Project Monitoring Settings, the Admin assigns that Operator to one province.
 - The Operator then sees only projects belonging to the assigned province.
 - Existing projects are selected from the Project list. For a new project, choose `Create New Project` and enter its name.

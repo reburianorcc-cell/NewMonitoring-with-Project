@@ -63,7 +63,7 @@ except Exception as exc:
     st.session_state.supabase_registry_error = str(exc)
 
 if account_role == "operator" and not allowed_provinces:
-    st.error("Your Project Control account has not been assigned to a province. Please contact an Admin.")
+    st.error("Your Project Monitoring account has not been assigned to a province. Please contact an Admin.")
     st.stop()
 
 pending_identity = st.session_state.pop("pending_project_identity", None) or {}

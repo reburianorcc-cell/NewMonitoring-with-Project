@@ -1713,9 +1713,11 @@ with st.sidebar:
         ("Incident Dashboard", ":material/monitor_heart:"),
         ("Evacuation Dashboard", ":material/exit_to_app:"),
         ("CLUP Monitoring", ":material/layers:"),
-        ("Project Control", ":material/assignment:"),
+        ("Project Monitoring", ":material/assignment:"),
     ]
     assigned_module = st.session_state.get("assigned_dashboard")
+    if assigned_module == "Project Control":
+        assigned_module = "Project Monitoring"
     if st.session_state.admin_role == "operator":
         portal_modules = (
             [item for item in portal_modules if item[0] == assigned_module]
@@ -1766,8 +1768,8 @@ if portal_section == "CLUP Monitoring":
     importlib.import_module(module_name)
     st.stop()
 
-if portal_section == "Project Control":
-    # Project Control shares the portal session and Supabase configuration.
+if portal_section == "Project Monitoring":
+    # Project Monitoring shares the portal session and Supabase configuration.
     import importlib
     import sys
 

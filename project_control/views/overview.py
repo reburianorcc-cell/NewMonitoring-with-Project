@@ -10,7 +10,7 @@ def render(project, report_date, project_year="All Years"):
     if not data:
         st.info("Upload the four SOCOCA Project Monitoring CSV files to populate this dashboard.")
         return
-    page_header("PROJECT CONTROL DASHBOARD", show_motto=True)
+    page_header("PROJECT MONITORING DASHBOARD", show_motto=True)
     months = data["months"]
     planned_progress = data["target_physical_percent"]
     actual_progress = data["actual_physical_percent"]

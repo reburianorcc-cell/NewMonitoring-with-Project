@@ -41,7 +41,7 @@ def render(project, report_date, project_year="All Years"):
                     role,
                     [
                         "Incident Dashboard", "Evacuation Dashboard",
-                        "CLUP Monitoring", "Project Control",
+                        "CLUP Monitoring", "Project Monitoring",
                     ],
                     upload_history_scope="project",
                 )
@@ -60,19 +60,19 @@ def render(project, report_date, project_year="All Years"):
         with st.container(border=True, key="whitecard_project_province_access"):
             st.markdown('<div class="section-title">Project Province Access</div>', unsafe_allow_html=True)
             st.caption(
-                "Assign one province to each Project Control operator. This does not change the shared accounts table."
+                "Assign one province to each Project Monitoring operator. This does not change the shared accounts table."
             )
             if not is_configured():
                 st.warning("Connect Supabase before assigning province access.")
                 return
             accounts = fetch_project_control_accounts()
             if not accounts:
-                st.info("Assign an account to the Project Control dashboard first.")
+                st.info("Assign an account to the Project Monitoring dashboard first.")
                 return
             labels = {
                 f"{row['username']} — {row['email']}": row for row in accounts
             }
-            account_label = st.selectbox("Project Control Account", list(labels))
+            account_label = st.selectbox("Project Monitoring Account", list(labels))
             province_name = st.text_input(
                 "Assigned Province", placeholder="Example: Bohol"
             ).strip()

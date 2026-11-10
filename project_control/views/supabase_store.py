@@ -155,7 +155,7 @@ def fetch_project_control_accounts():
     return [
         row for row in rows
         if row.get("role") == "operator"
-        and row.get("assigned_dashboard") == "Project Control"
+        and row.get("assigned_dashboard") in {"Project Control", "Project Monitoring"}
     ]
 
 
