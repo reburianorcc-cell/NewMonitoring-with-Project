@@ -26,7 +26,7 @@ PROJECT_FILE_TYPES = {
     "Project Components": ["project_components", "total_physical_target", "total_project_cost"],
     "Project Targets": ["month", "physical", "cost"],
     "Project Accomplishment": ["month", "physical", "cost"],
-    "Project Risks": ["risk_id", "risk_description", "category", "probability", "impact", "affected_month", "delay_days", "owner", "mitigation_action", "status"],
+    "Project Risks": ["risk_id", "risk_description", "category", "observation", "potential_impact", "affected_month", "delay_days", "owner", "mitigation_action", "status"],
 }
 
 def _normalize(value):
@@ -342,6 +342,15 @@ def render(project, report_date, project_year="All Years"):
                     content_type = item["suggested_type"]
                 dataframe = item["dataframe"]
                 normalized_columns = {_normalize(column) for column in dataframe.columns}
+                if content_type == "Project Risks":
+                    # Accept both the revised SOCOCA labels and previously
+                    # uploaded risk-register headings.
+                    if "probability" in normalized_columns:
+                        normalized_columns.add("observation")
+                    if "impact" in normalized_columns:
+                        normalized_columns.add("potential_impact")
+                    if any(column.startswith("affected_month") for column in normalized_columns):
+                        normalized_columns.add("affected_month")
                 missing = [field for field in PROJECT_FILE_TYPES[content_type] if field not in normalized_columns]
                 if missing:
                     all_valid = False

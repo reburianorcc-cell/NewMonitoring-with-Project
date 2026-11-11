@@ -10,10 +10,30 @@ from .project_data import get_project_data
 
 
 RISK_COLUMNS = [
-    "Risk ID", "Risk Description", "Category", "Probability", "Impact",
-    "Affected Month", "Delay Days", "Schedule Impact", "Cost Impact",
-    "Owner", "Mitigation Action", "Due Date", "Status",
+    "Risk ID", "Risk Description", "Category", "Observation", "Potential Impact",
+    "Affected Month", "Delay Days", "Description of the Impact", "Cost Impact",
+    "Owner", "Mitigation Action", "Deadline for the Mitigation Action", "Status",
 ]
+
+RISK_COLUMN_ALIASES = {
+    "risk_id": "Risk ID",
+    "risk_description": "Risk Description",
+    "category": "Category",
+    "observation": "Observation",
+    "probability": "Observation",
+    "potential_impact": "Potential Impact",
+    "impact": "Potential Impact",
+    "affected_month": "Affected Month",
+    "delay_days": "Delay Days",
+    "description_of_the_impact": "Description of the Impact",
+    "schedule_impact": "Description of the Impact",
+    "cost_impact": "Cost Impact",
+    "owner": "Owner",
+    "mitigation_action": "Mitigation Action",
+    "deadline_for_the_mitigation_action": "Deadline for the Mitigation Action",
+    "due_date": "Deadline for the Mitigation Action",
+    "status": "Status",
+}
 
 
 def _normalize(value):
@@ -40,15 +60,20 @@ def _money(value):
 
 
 def _prepare_risks(frame, project_year):
-    aliases = {_normalize(column): column for column in RISK_COLUMNS}
-    renamed = frame.rename(columns={column: aliases.get(_normalize(column), column) for column in frame.columns}).copy()
+    def canonical_column(column):
+        normalized = _normalize(column)
+        if normalized.startswith("affected_month"):
+            return "Affected Month"
+        return RISK_COLUMN_ALIASES.get(normalized, column)
+
+    renamed = frame.rename(columns={column: canonical_column(column) for column in frame.columns}).copy()
     for column in RISK_COLUMNS:
         if column not in renamed:
             renamed[column] = None
     risks = renamed[RISK_COLUMNS].dropna(how="all").copy()
-    risks["Probability Score"] = risks["Probability"].map(_score)
-    risks["Impact Score"] = risks["Impact"].map(_score)
-    risks["Risk Score"] = risks["Probability Score"] * risks["Impact Score"]
+    risks["Observation Score"] = risks["Observation"].map(_score)
+    risks["Potential Impact Score"] = risks["Potential Impact"].map(_score)
+    risks["Risk Score"] = risks["Observation Score"] * risks["Potential Impact Score"]
     risks["Month Number"] = risks["Affected Month"].map(_month_number)
     risks["Delay Days"] = pd.to_numeric(risks["Delay Days"], errors="coerce").fillna(0).clip(lower=0)
     risks["Cost Impact Value"] = risks["Cost Impact"].map(_money)
@@ -103,14 +128,14 @@ def render(project, report_date, project_year="All Years"):
             colorscale=[[0, "#56c58a"], [.5, "#ffe174"], [1, "#f15b5b"]], showscale=False, hoverinfo="skip",
         ))
         heat.add_trace(go.Scatter(
-            x=risks["Impact Score"], y=risks["Probability Score"], mode="markers",
+            x=risks["Potential Impact Score"], y=risks["Observation Score"], mode="markers",
             customdata=risks[["Risk ID", "Risk Description", "Delay Days"]],
             marker=dict(size=11, color="#174f8a", line=dict(color="white", width=2)),
             hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<br>Delay: %{customdata[2]} days<extra></extra>",
         ))
         heat.update_layout(height=285, autosize=True, margin=dict(l=35, r=12, t=4, b=35), paper_bgcolor="white", plot_bgcolor="white", showlegend=False)
-        heat.update_xaxes(title="Impact", dtick=1, fixedrange=True)
-        heat.update_yaxes(title="Probability", dtick=1, fixedrange=True)
+        heat.update_xaxes(title="Potential Impact", dtick=1, fixedrange=True)
+        heat.update_yaxes(title="Observation", dtick=1, fixedrange=True)
         st.plotly_chart(heat, width="stretch", config={"displayModeBar": False, "responsive": True})
 
     with status_col.container(border=True, key="whitecard_risk_status"):
